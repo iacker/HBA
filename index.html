@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HBA — Hermes Berserk Armor</title>
+<meta name="description" content="A forged set of extensions that turn a stock Hermes agent into a durable, contained, portable operator. Memory, reach, defense, control.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700;900&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#05060a;
+  --ink2:#0a0c12;
+  --iron:#12141c;
+  --iron2:#191c26;
+  --steel:#2a2e3b;
+  --bone:#c9c3b3;
+  --bone-dim:#8b8577;
+  --amber:#d9a441;
+  --amber-bright:#f0c46a;
+  --crimson:#8f2020;
+  --crimson-bright:#c9382f;
+  --edge:#3a3220;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--bone);
+  font-family:'EB Garamond',Georgia,serif;
+  font-size:19px;
+  line-height:1.7;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* forged texture overlay */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(217,164,65,.06), transparent 60%),
+    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(143,32,32,.08), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px);
+  mix-blend-mode:screen;
+}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 28px}
+h1,h2,h3,.disp{font-family:'Cinzel',serif;letter-spacing:.04em}
+a{color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(217,164,65,.25);transition:.2s}
+a:hover{color:var(--amber-bright);border-color:var(--amber-bright)}
+code{font-family:'JetBrains Mono',monospace;font-size:.82em;color:var(--amber-bright);background:rgba(217,164,65,.08);padding:.1em .4em;border-radius:3px;border:1px solid rgba(217,164,65,.14)}
+
+/* ---------- HERO ---------- */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:80px 20px;overflow:hidden}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.28;filter:grayscale(.3) contrast(1.15) brightness(.7)}
+.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center, transparent 20%, var(--ink) 85%)}
+.hero-inner{position:relative;z-index:2;max-width:820px}
+.crest{font-family:'Cinzel';font-weight:900;font-size:clamp(56px,13vw,148px);line-height:.9;color:var(--bone);
+  text-shadow:0 0 40px rgba(217,164,65,.25), 0 4px 2px #000;letter-spacing:.06em}
+.crest .b{color:var(--amber)}
+.tagline{font-family:'Cinzel';font-weight:500;font-size:clamp(14px,2.4vw,22px);color:var(--amber);letter-spacing:.28em;text-transform:uppercase;margin-top:18px}
+.subtitle{font-size:clamp(18px,2.4vw,23px);color:var(--bone-dim);margin-top:30px;font-style:italic;max-width:640px;margin-left:auto;margin-right:auto}
+.rule{width:180px;height:1px;margin:34px auto;background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+.creed{font-family:'Cinzel';font-size:clamp(15px,2vw,19px);color:var(--bone);letter-spacing:.05em;line-height:1.6}
+.creed strong{color:var(--amber-bright);font-weight:700}
+.scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;color:var(--bone-dim);font-family:'Cinzel';font-size:12px;letter-spacing:.3em;text-transform:uppercase;animation:pulse 2.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.9}}
+
+/* ---------- SECTIONS ---------- */
+section{padding:90px 0;position:relative}
+.sec-tag{font-family:'Cinzel';font-size:13px;letter-spacing:.4em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.sec-tag::before{content:"";width:34px;height:1px;background:var(--amber)}
+.sec-title{font-size:clamp(30px,5vw,52px);font-weight:700;color:var(--bone);line-height:1.05;margin-bottom:8px}
+.sec-sub{color:var(--bone-dim);font-size:20px;font-style:italic;margin-bottom:44px;max-width:720px}
+.lead{font-size:21px;color:var(--bone);margin-bottom:40px;max-width:760px}
+.lead b{color:var(--amber-bright);font-weight:500}
+
+/* ---------- WHY GRID ---------- */
+.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--steel);border:1px solid var(--steel);border-radius:6px;overflow:hidden}
+.gap-cell{background:var(--iron);padding:26px 28px}
+.gap-cell h4{font-family:'Cinzel';color:var(--crimson-bright);font-size:15px;letter-spacing:.06em;margin-bottom:8px}
+.gap-cell.fix h4{color:var(--amber)}
+.gap-cell p{color:var(--bone-dim);font-size:17px}
+
+/* ---------- LAYER BLOCK ---------- */
+.layer{border-left:2px solid var(--edge);padding-left:34px;margin-bottom:10px;position:relative}
+.layer::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;background:var(--amber);transform:rotate(45deg);box-shadow:0 0 12px rgba(217,164,65,.6)}
+
+/* ---------- COMPONENT CARD ---------- */
+.plate{background:linear-gradient(155deg,var(--iron2),var(--iron));border:1px solid var(--steel);border-radius:8px;padding:30px 32px;margin:20px 0;position:relative;transition:.25s;box-shadow:0 2px 0 #000, inset 0 1px 0 rgba(255,255,255,.03)}
+.plate:hover{border-color:rgba(217,164,65,.45);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 0 1px rgba(217,164,65,.15)}
+.plate .rivet{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--steel)}
+.plate .rivet.tl{top:9px;left:9px}.plate .rivet.tr{top:9px;right:9px}.plate .rivet.bl{bottom:9px;left:9px}.plate .rivet.br{bottom:9px;right:9px}
+.plate-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.plate-name{font-family:'Cinzel';font-weight:700;font-size:24px;color:var(--amber-bright)}
+.plate-role{font-size:16px;color:var(--bone-dim);font-style:italic}
+.badge{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:3px;border:1px solid;white-space:nowrap}
+.badge.self{color:var(--amber);border-color:rgba(217,164,65,.4);background:rgba(217,164,65,.07)}
+.badge.tp{color:#7fa8c9;border-color:rgba(127,168,201,.35);background:rgba(127,168,201,.07)}
+.badge.pub{color:#7cba7c;border-color:rgba(124,186,124,.35);background:rgba(124,186,124,.07)}
+.badge.priv{color:var(--bone-dim);border-color:var(--steel);background:rgba(255,255,255,.03)}
+.plate p{color:var(--bone);font-size:18px;margin-top:12px}
+.plate .why{color:var(--bone-dim);font-size:16px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.05)}
+.plate .why b{color:var(--amber);font-weight:500;font-family:'Cinzel';font-size:13px;letter-spacing:.05em;text-transform:uppercase}
+.pull{border-left:3px solid var(--crimson);padding:6px 0 6px 18px;margin:16px 0;font-style:italic;color:var(--bone);font-size:19px}
+
+/* ---------- MEMORY TIERS ---------- */
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:30px 0}
+.tier{background:var(--iron);border:1px solid var(--steel);border-radius:7px;padding:22px 20px;transition:.25s}
+.tier:hover{border-color:rgba(217,164,65,.4);background:var(--iron2)}
+.tier .n{font-family:'JetBrains Mono';font-size:12px;color:var(--amber);letter-spacing:.15em}
+.tier h4{font-family:'Cinzel';font-size:19px;color:var(--bone);margin:8px 0}
+.tier .q{font-style:italic;color:var(--bone-dim);font-size:16px;min-height:66px}
+.tier .c{font-family:'JetBrains Mono';font-size:12.5px;color:var(--amber-bright);margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+
+/* ---------- ASCII / FLOW ---------- */
+.forge{background:var(--ink2);border:1px solid var(--steel);border-radius:8px;padding:26px;overflow-x:auto;margin:24px 0}
+.forge pre{font-family:'JetBrains Mono';font-size:13px;line-height:1.5;color:var(--bone-dim);white-space:pre}
+.forge pre b{color:var(--amber)}
+
+/* ---------- FLEET ---------- */
+.fleet{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}
+.body{background:linear-gradient(160deg,var(--iron2),var(--ink2));border:1px solid var(--steel);border-radius:8px;padding:28px 24px;text-align:center;transition:.25s}
+.body:hover{border-color:rgba(217,164,65,.4);transform:translateY(-3px)}
+.body .sig{font-family:'Cinzel';font-size:22px;color:var(--amber-bright);font-weight:700}
+.body .role{color:var(--bone-dim);font-style:italic;margin:8px 0 4px}
+.body .back{font-family:'JetBrains Mono';font-size:12px;color:var(--bone-dim)}
+
+/* ---------- FIT TABLE ---------- */
+.fit{width:100%;border-collapse:collapse;margin-top:24px;font-size:17px}
+.fit td{padding:12px 16px;border-bottom:1px solid var(--iron2)}
+.fit tr:hover td{background:var(--iron)}
+.fit td:first-child{font-family:'JetBrains Mono';font-size:14px;color:var(--amber-bright);white-space:nowrap}
+.fit td:last-child{color:var(--bone-dim)}
+
+/* ---------- CTA / FOOT ---------- */
+.cta{text-align:center;padding:60px 0 20px}
+.forge-btn{display:inline-block;font-family:'Cinzel';font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:15px;color:var(--ink);background:linear-gradient(180deg,var(--amber-bright),var(--amber));padding:16px 42px;border-radius:4px;border:none;box-shadow:0 4px 20px rgba(217,164,65,.25);transition:.25s}
+.forge-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(217,164,65,.4);color:var(--ink)}
+footer{text-align:center;padding:50px 20px 70px;color:var(--bone-dim);font-size:15px;border-top:1px solid var(--iron2)}
+footer .disp{color:var(--bone);font-size:18px;letter-spacing:.2em}
+
+@media(max-width:760px){
+  body{font-size:18px}
+  .gap-grid,.tiers,.fleet{grid-template-columns:1fr}
+  .tier .q{min-height:0}
+  section{padding:64px 0}
+}
+/* reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease, transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <video autoplay muted loop playsinline poster="assets/fleet-architecture.png">
+    <source src="assets/fleet-architecture.mp4" type="video/mp4">
+  </video>
+  <div class="hero-inner">
+    <div class="crest">H<span class="b">B</span>A</div>
+    <div class="tagline">Hermes&nbsp;·&nbsp;Berserk&nbsp;·&nbsp;Armor</div>
+    <p class="subtitle">The forged surcoat over a standard Hermes agent — the memory it thinks with, the tools it fights with, the seals that keep it contained.</p>
+    <div class="rule"></div>
+    <p class="creed">Give the agent <strong>real power</strong>.<br>Pair every power with a <strong>seal</strong> that bounds the blast radius.</p>
+  </div>
+  <div class="scroll-hint">Descend&nbsp;▾</div>
+</header>
+
+<!-- ============ WHY ============ -->
+<section id="why">
+  <div class="wrap reveal">
+    <div class="sec-tag">The Bare Skeleton</div>
+    <h2 class="sec-title">What a stock agent lacks</h2>
+    <p class="sec-sub">Hermes out of the box is capable but exposed: it forgets, it trusts, it overpays, and it lives in one place. HBA is the armor forged over those four gaps — nothing here forks the core.</p>
+    <div class="gap-grid">
+      <div class="gap-cell"><h4>Forgets</h4><p>No memory between sessions. Every conversation starts from nothing.</p></div>
+      <div class="gap-cell fix"><h4>→ A four-tier memory</h4><p>Working, identity, episodic, semantic — one felt mind, the right store per question.</p></div>
+      <div class="gap-cell"><h4>Trusts blindly</h4><p>API keys in a plaintext <code>.env</code>; full access, no containment.</p></div>
+      <div class="gap-cell fix"><h4>→ Sealed by hardware</h4><p>Keys in the Secure Enclave, profiles that can lock themselves, a read-only auditor.</p></div>
+      <div class="gap-cell"><h4>Overpays</h4><p>The whole tool catalog re-billed on every single turn.</p></div>
+      <div class="gap-cell fix"><h4>→ A token scalpel</h4><p>Only the relevant tools surfaced per turn — a large arsenal made affordable.</p></div>
+      <div class="gap-cell"><h4>Single-homed</h4><p>Lives on one machine. If it is down, it is gone.</p></div>
+      <div class="gap-cell fix"><h4>→ One will, three bodies</h4><p>The same agent projected across Azure, a k3s cluster, and this Mac.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CORE / MEMORY ============ -->
+<section id="core">
+  <div class="wrap reveal">
+    <div class="sec-tag">The Mind — Core</div>
+    <h2 class="sec-title">Memory, in four tiers</h2>
+    <p class="sec-sub">The layers are not redundant. Each answers a different question on a different timescale — the same way a mind separates working memory, identity, episodes, and knowledge. One store optimised for everything is good at nothing.</p>
+
+    <div class="tiers">
+      <div class="tier"><div class="n">TIER I · WORKING</div><h4>The present</h4><p class="q">“What are we doing right now?”</p><div class="c">hermes-lcm</div></div>
+      <div class="tier"><div class="n">TIER II · IDENTITY</div><h4>Who you are</h4><p class="q">“Who is this user, what do they always want?”</p><div class="c">mem0 · pgvector</div></div>
+      <div class="tier"><div class="n">TIER III · EPISODIC</div><h4>What happened</h4><p class="q">“What happened before, what did I learn?”</p><div class="c">agentmemory</div></div>
+      <div class="tier"><div class="n">TIER IV · SEMANTIC</div><h4>What is known</h4><p class="q">“What do I know about this subject?”</p><div class="c">brain-rag · neuromancer</div></div>
+    </div>
+
+    <div class="forge">
+<pre>        turn N of a live session
+                 │
+                 ▼
+   ┌─────────────────────────────┐  <b>WORKING</b>  (this session)
+   │ hermes-lcm                  │  compacts the conversation into a
+   │ context compaction          │  summary DAG + a protected recent tail
+   └──────────────┬──────────────┘
+                  ▼
+   ┌─────────────────────────────┐  <b>IDENTITY</b>  (always in context, free)
+   │ mem0 / pgvector + notes     │  stable facts &amp; preferences, every turn
+   └──────────────┬──────────────┘
+                  │  need more? retrieve on demand — narrowest lookup
+                  ▼
+   ┌──────────────┴───────┐   ┌──────────────────────────┐
+   │ agentmemory          │   │ brain-rag / neuromancer  │
+   │ <b>EPISODIC</b>: sessions,  │   │ <b>SEMANTIC</b>: hybrid RAG    │
+   │ lessons, graph       │   │ over the vault           │
+   └──────────────────────┘   └──────────────────────────┘</pre>
+    </div>
+
+    <p class="lead"><b>Read path:</b> what is already in context (working + identity) costs nothing to consult; episodic and semantic memory are reached only when that is insufficient. <b>Write path:</b> sessions are consolidated into the episodic graph, durable lessons are promoted up into identity memory so they load free next time, and vault documents are indexed for semantic recall. The agent behaves as if it has one memory — each question served by the store that answers it cheapest and truest.</p>
+
+    <div class="layer">
+      <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+        <div class="plate-head"><span class="plate-name">brain-rag-server</span><span class="plate-role">semantic memory</span><span class="badge self">self-built</span><span class="badge pub">public</span></div>
+        <p>Local hybrid-RAG MCP server over a markdown / Obsidian vault. fastembed MiniLM embeddings and a BM25 full-text index in embedded LanceDB, merged with reciprocal rank fusion. No cloud, no GPU, no database server, no daemon.</p>
+        <p class="why"><b>Role</b> Gives the agent everything you have ever written, retrievable by meaning.</p>
+      </div>
+      <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+        <div class="plate-head"><span class="plate-name">agentmemory</span><span class="plate-role">episodic memory</span><span class="badge tp">third-party · integrated</span></div>
+        <p>Consolidates session observations into a tiered store and a knowledge graph — past decisions, lessons, and how facts relate. Queried on demand when the current context is not enough.</p>
+        <p class="why"><b>Role</b> The agent's memory of its own past work.</p>
+      </div>
+      <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+        <div class="plate-head"><span class="plate-name">hermes-lcm</span><span class="plate-role">working memory</span><span class="badge tp">Hermes plugin</span></div>
+        <p>Context compaction: folds a long running conversation into a hierarchical summary DAG plus a protected recent tail, so a session never overflows the window while keeping precise recovery of anything summarised.</p>
+        <p class="why"><b>Role</b> Lets a single session run long without losing the thread.</p>
+      </div>
+      <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+        <div class="plate-head"><span class="plate-name">mem0 · pgvector</span><span class="plate-role">identity memory</span><span class="badge tp">third-party · integrated</span></div>
+        <p>Stable facts and preferences persisted in Postgres / pgvector, injected every turn and shared across every body of the fleet, surviving restarts.</p>
+        <p class="why"><b>Role</b> The agent always knows who you are, everywhere.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REACH ============ -->
+<section id="reach">
+  <div class="wrap reveal">
+    <div class="sec-tag">The Sword-Arm — Reach</div>
+    <h2 class="sec-title">Tools it fights with</h2>
+    <p class="sec-sub">Broad capability, loaded on demand, kept cheap, and bounded. The strategy hangs on one keystone: a big arsenal is only wise if it does not tax every turn.</p>
+
+    <div class="plate" style="border-color:rgba(217,164,65,.35)"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">mcp-scalpel</span><span class="plate-role">the keystone</span><span class="badge self">self-built</span><span class="badge pub">public</span></div>
+      <p>When an MCP client connects to a gateway of many tools, the <b>entire catalog</b> — names, descriptions, JSON schemas — is injected into <b>every</b> LLM call. Measured on a live Docker MCP Gateway: 49 tools ≈ <b style="color:var(--crimson-bright)">18,700 input tokens per turn</b>, re-sent forever.</p>
+      <div class="pull">Scalpel sits as a stdio proxy between client and gateway, intercepts <code>tools/list</code>, and returns only the ~15 tools relevant to the session — <b>35–52% fewer catalog tokens per turn</b>.</div>
+      <p>It never sees the prompt, only JSON-RPC frames, so it routes on session context. A meta-tool <code>scalpel_search_tools(query)</code> pulls any hidden tool's full schema on demand (progressive disclosure); low-signal queries fall back to the full catalog and <code>tools/call</code> is always relayed, so nothing is ever un-callable. Pure-numpy TF-IDF: milliseconds, no cloud.</p>
+      <p class="why"><b>Why it is the keystone</b> It is what makes "give the agent a lot of tools" affordable instead of a permanent per-turn tax. Every other reach tool below is cheap to keep because scalpel only surfaces it when relevant.</p>
+    </div>
+
+    <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">ab-live</span><span class="plate-role">the real browser</span><span class="badge self">self-built</span><span class="badge priv">private</span></div>
+      <p>Drives your actual browser — cookies, sessions, extensions — live inside the Hermes pane, not a headless throwaway. The agent acts <i>as you</i> on authenticated sites where no API exists, and you can watch it move.</p>
+      <p class="why"><b>Role</b> Real-world action with your real identity.</p>
+    </div>
+    <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">excalibur</span><span class="plate-role">scan → report</span><span class="badge self">self-built</span><span class="badge priv">private</span></div>
+      <p>Turns raw nuclei output into a scope-enforced, deduplicated, submission-ready security report — the tedious distance between a scan and something you can actually file.</p>
+      <p class="why"><b>Role</b> Offensive-security findings, made presentable.</p>
+    </div>
+    <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">Mando</span><span class="plate-role">autonomous hunter</span><span class="badge tp">third-party · operated</span><span class="badge priv">private</span></div>
+      <p>Runs the full bug-bounty hunt loop unattended (Hermes + Boba MCP + Exegol). Chosen and operated, not authored — HBA is a system, and well-picked tools earn their place beside the forged ones.</p>
+      <p class="why"><b>Role</b> Hands-off reconnaissance and hunting.</p>
+    </div>
+    <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">domain servers</span><span class="plate-role">reach into whole fields</span><span class="badge tp">integrated</span></div>
+      <p><code>blender</code> for 3D, <code>vibe-trading</code> for markets, <code>erp</code> for business data — each a whole domain the agent can operate in, kept cheap because scalpel only surfaces them on demand.</p>
+      <p class="why"><b>Role</b> Breadth without the token cost of breadth.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEFENSE ============ -->
+<section id="defense">
+  <div class="wrap reveal">
+    <div class="sec-tag">The Seals — Defense</div>
+    <h2 class="sec-title">Power without blast radius</h2>
+    <p class="sec-sub">An agent with a shell is a blade pointed at your own machine, and prompt injection means a bad instruction will eventually slip through. The seals do not stop the agent working — they make sure a compromised one has little worth stealing and little it can undo.</p>
+
+    <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">heucat</span><span class="plate-role">the key never leaves the hardware</span><span class="badge self">self-built</span><span class="badge pub">public</span></div>
+      <p>Hardware Enclave Credential Authentication Tool. A stock agent's keys sit in a plaintext <code>.env</code>, one file-read from exfiltration. heucat serves them from the macOS Keychain instead, encrypted with a key that <b>never leaves the Secure Enclave</b>, gated behind Touch ID. It plugs in as a Hermes secret source: the agent asks for a key by name, the enclave decides whether to release it.</p>
+      <p class="why"><b>Seals the power</b> "The agent holds API keys." Even with full shell access, there is no plaintext key file to read.</p>
+    </div>
+
+    <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">hermes-chthonios</span><span class="plate-role">the agent can lock itself out</span><span class="badge self">self-built</span><span class="badge pub">public</span></div>
+      <p>A secret manager decides <i>where</i> credentials live; chthonios decides <i>whether a profile may hold them at all.</i> It encrypts a profile's <code>.env</code> into ciphertext. A sealed profile's gateway starts, finds no key, and cannot call any model until a human unlocks it.</p>
+      <div class="pull">Sealing needs only a public recipient — an unattended agent can seal itself. Unsealing needs the physical YubiKey in a hand: touch and PIN.</div>
+      <p>So an autonomous agent can <b>revoke its own access to its credentials without keeping the means to undo it</b>. A UI passcode only stops a glance at your screen and falls to a shell, because the plaintext is still there. chthonios removes the plaintext — there is nothing to bypass.</p>
+      <p class="why"><b>Seals the power</b> "The profile holds state at rest."</p>
+    </div>
+
+    <div class="plate"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">hermes-argus</span><span class="plate-role">an honest measure of exposure</span><span class="badge self">self-built</span><span class="badge pub">public</span></div>
+      <p>You cannot bound a blast radius you cannot see. argus reads the Hermes config and <b>cross-checks it against the ports actually listening on the machine</b>, then grades real exposure: is the shell sandboxed or on the host? Are risky actions gated behind approval? Is the dashboard published without a password? Are A2A / MCP ports reachable without auth? Are secrets kept out of the environment and logs? Unlike scanners that scream <code>CRITICAL</code> at a healthy setup, it scores honestly — and never reads or writes a secret, never changes a thing.</p>
+      <p class="why"><b>Measures</b> How well the other two seals are actually holding.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTROL + FLEET ============ -->
+<section id="control">
+  <div class="wrap reveal">
+    <div class="sec-tag">The Standard — Control &amp; Fleet</div>
+    <h2 class="sec-title">One will, three bodies</h2>
+    <p class="sec-sub">The same agent, the same memory, the same arsenal — projected onto three bodies so the operator is always reachable and never single-homed. Because memory lives in shared stores, not in any one process, the agent carries the same mind whichever body answers.</p>
+
+    <div class="fleet">
+      <div class="body"><div class="sig">Azure</div><div class="role">the far outpost</div><div class="back">cloud node · always reachable</div></div>
+      <div class="body"><div class="sig">k3s</div><div class="role">the standing host</div><div class="back">Harness-Cluster · Flux GitOps · 24/7</div></div>
+      <div class="body"><div class="sig">Local</div><div class="role">the forge</div><div class="back">this Mac · hardware-gated · always on</div></div>
+    </div>
+
+    <div class="plate" style="margin-top:26px"><i class="rivet tl"></i><i class="rivet tr"></i><i class="rivet bl"></i><i class="rivet br"></i>
+      <div class="plate-head"><span class="plate-name">KubeShip</span><span class="plate-role">see and steer</span><span class="badge self">self-built</span><span class="badge priv">private</span></div>
+      <p>Turns the Kubernetes fleet into a visual, steerable interface — the infrastructure made observable and commandable — backed by <code>Harness-Cluster</code>, the GitOps k3s setup (Flux CD) that keeps the agents running around the clock.</p>
+      <p class="why"><b>Role</b> The hand on the fleet.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIT ============ -->
+<section id="fit">
+  <div class="wrap reveal">
+    <div class="sec-tag">Forged To Fit</div>
+    <h2 class="sec-title">Why it is armor, not a fork</h2>
+    <p class="sec-sub">Every piece plugs into a socket Hermes already has. Remove any single component and the agent still runs; add them together and you get the system above — upgrading cleanly with the core, adoptable one plate at a time.</p>
+    <table class="fit">
+      <tr><td>brain-rag · neuromancer · agentmemory · excalibur</td><td>MCP servers (stdio)</td></tr>
+      <tr><td>hermes-lcm · tokenwatch · audit_to_db</td><td>Hermes plugins</td></tr>
+      <tr><td>heucat</td><td>secret source (Hermes keychain)</td></tr>
+      <tr><td>hermes-chthonios</td><td>operates on the profile directory</td></tr>
+      <tr><td>hermes-argus</td><td>reads the config, read-only</td></tr>
+      <tr><td>mcp-scalpel</td><td>transparent proxy before the gateway</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<div class="wrap reveal">
+  <div class="cta">
+    <div class="rule"></div>
+    <p class="creed" style="margin-bottom:30px">Maximise capability. Bound the blast radius.</p>
+    <a class="forge-btn" href="https://github.com/iacker/HBA">Enter the armory →</a>
+  </div>
+</div>
+
+<footer>
+  <div class="disp">H B A</div>
+  <p style="margin-top:10px">Forged over <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a> by <a href="https://github.com/iacker">@iacker</a></p>
+</footer>
+
+<script>
+// scroll reveal
+const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+// hide scroll hint after first scroll
+addEventListener('scroll',()=>{const h=document.querySelector('.scroll-hint');if(h)h.style.opacity=scrollY>80?'0':''},{passive:true});
+</script>
+</body>
+</html>
