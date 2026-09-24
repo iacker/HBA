@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# scratch
+*.tmp
+frames/
+*_frames/
+
+# keep assets, but ignore heavy raw renders
+*.mov
