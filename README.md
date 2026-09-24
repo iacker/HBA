@@ -93,43 +93,100 @@ served by the store that can answer it cheapest and most accurately.
 
 The strategy is **broad capability, loaded on demand, kept cheap, and bounded.**
 
-1. **Broad capability, grouped by intent.** Tools are organised by what the
-   agent is trying to do — reach the world, run a security workflow, drive a
-   domain — not dumped into one flat list.
+### The token problem, and mcp-scalpel
 
-2. **Kept cheap.** A large toolset is expensive: every MCP tool's schema is
-   re-injected into every turn. `mcp-scalpel` sits in front of the Docker MCP
-   Gateway and routes `tools/list` to the relevant subset, cutting per-turn
-   catalog tokens by 35-52%. This is what makes a large toolset affordable
-   instead of a permanent tax.
+The reason a big toolset is normally a bad idea is cost, not confusion. When an
+MCP client connects to a gateway exposing many tools, the **entire catalog** —
+every tool's name, description, and JSON input schema — is injected into **every**
+LLM call. Measured on a live Docker MCP Gateway: 49 tools ≈ **18,700 input
+tokens per turn**, re-sent on every single message, forever.
 
-3. **Real-world actions, real identity.** `ab-live` gives the agent your actual
-   browser — cookies, sessions, extensions — instead of a headless throwaway, so
-   it can act as you where an API does not exist.
+`mcp-scalpel` removes that tax. It sits as a stdio proxy *between* the client and
+the gateway, intercepts `tools/list`, and returns only the tools relevant to the
+current session — typically ~15 of 49 — relaying everything else verbatim.
+Measured result: **35-52% fewer catalog tokens per turn.** Because a proxy never
+sees the user's prompt (only JSON-RPC frames), it routes on session context —
+a task hint plus recently-called tool names — and exposes a meta-tool
+`scalpel_search_tools(query)` so the agent can pull any hidden tool's full schema
+on demand (progressive disclosure). Low-signal queries fall back to the full
+catalog and `tools/call` is always relayed, so a hidden tool is never
+*un*callable. Pure-numpy TF-IDF by default: milliseconds, no cloud, no downloads.
 
-4. **Specialised operators.** `excalibur` turns a raw nuclei scan into a
-   scope-enforced, submission-ready report; `Mando` runs autonomous bug-bounty
-   workflows. Domain MCP servers (`blender`, `vibe-trading`, `erp`) extend reach
-   into 3D, markets, and business data.
+**This is the keystone of the reach layer**: it is what makes "give the agent a
+lot of tools" affordable instead of a permanent per-turn cost.
 
-5. **Every action is bounded.** Nothing in this layer holds a plaintext secret
-   or an irreversible key — that is guaranteed by the defense layer, not by
-   convention.
+### The rest of the reach layer
+
+- **`ab-live` — act as you, where no API exists.** Drives your *real* browser
+  (cookies, sessions, extensions) live inside the Hermes pane, not a headless
+  throwaway. The agent operates authenticated sites as you.
+- **`excalibur` — scan to submission-ready report.** Turns raw nuclei output into
+  a scope-enforced, deduplicated report you can actually file (Hermes MCP server).
+- **`Mando` — autonomous bug-bounty operator.** Runs the full hunt loop (Hermes +
+  Boba MCP + Exegol) without hand-holding.
+- **Domain MCP servers** — `blender` (3D), `vibe-trading` (markets), `erp`
+  (business data) extend reach into whole domains, each cheap to keep because
+  scalpel only surfaces them when relevant.
+
+Every one of these acts on the real world, and none of them holds a plaintext
+secret or an irreversible key — that is guaranteed by the defense layer below,
+not by good behaviour.
 
 ---
 
 ## Defense: capability without blast radius
 
-Each control is paired with a specific power granted above.
+An AI agent with a shell is a powerful thing pointed at your machine, and prompt
+injection means a bad instruction will eventually slip through. So the real work
+is not preventing every compromise — it is making sure a compromised agent has
+little worth stealing and little it can undo. The three defense tools attack that
+from three angles: **where secrets live**, **whether the agent may hold them at
+all**, and **how exposed the whole setup actually is.**
 
-| Power granted | Paired control | Guarantee |
-|---------------|----------------|-----------|
-| The agent holds API keys | `heucat` | Keys served from the macOS Secure Enclave behind Touch ID; the key never leaves the enclave, no plaintext `.env`. |
-| The agent's profile holds state | `hermes-chthonios` | The profile can be sealed at rest — the agent can encrypt but physically cannot decrypt without a YubiKey, so a sealed profile cannot read a single key. |
-| The agent runs with real access | `hermes-argus` | Read-only auditor cross-checks config against listening ports and grades real exposure; never reads or writes a secret. |
+### heucat — the key never leaves the hardware
 
-The controls never limit what the agent is *meant* to do. They limit what an
-attacker could achieve if the agent were compromised.
+*Hardware Enclave Credential Authentication Tool.* A stock agent keeps its API
+keys in a plaintext `.env` — one file read away from exfiltration. heucat serves
+those keys from the macOS Keychain instead, encrypted with a key that **never
+leaves the Secure Enclave** and gated behind Touch ID. It plugs in as a Hermes
+secret source, so the agent asks for a key by name and the enclave decides
+whether to release it. Even with full shell access, there is no plaintext key
+file to read. *Controls the power: "the agent holds API keys."*
+
+### hermes-chthonios — the agent can lock itself out
+
+A secret manager decides **where** credentials live; chthonios decides **whether
+a profile is allowed to hold them at all.** It encrypts a profile's `.env` into
+ciphertext. A sealed profile's gateway starts, finds no key, and cannot call any
+model until a human unlocks it. The asymmetry is the point:
+
+> Sealing needs only a public recipient — so an unattended agent can seal itself.
+> Unsealing needs the physical YubiKey in someone's hand (touch + PIN).
+
+An autonomous agent can therefore **revoke its own access to its credentials
+without keeping the means to undo it.** A UI passcode only stops a glance at your
+screen and is bypassable from a shell because the plaintext is still there;
+chthonios removes the plaintext, so there is nothing to bypass. *Controls the
+power: "the agent's profile holds state at rest."*
+
+### hermes-argus — an honest, read-only measure of the blast radius
+
+You cannot bound a blast radius you cannot see. argus reads the Hermes config and
+**cross-checks it against the ports actually listening on the machine**, then
+grades real exposure. It answers concrete questions: is the shell sandboxed or
+running straight on the host? Are risky actions gated behind human approval? Is
+the dashboard published without a password? Are A2A / MCP ports reachable from
+the LAN without auth? Are secrets kept out of the execution environment and logs?
+Unlike scanners that scream `CRITICAL` at a healthy setup, argus scores honestly
+— only real issues lower the grade — and **never reads or writes a secret, never
+changes anything.** *Measures how well the other two controls are actually
+holding.*
+
+Together: heucat means a stolen `.env` yields nothing, chthonios means an
+idle or suspect agent can be put beyond use of its own keys, and argus keeps you
+honest about how exposed the running system really is. None of the three limits
+what the agent is *meant* to do — they limit what an attacker gains the day it is
+fooled.
 
 ---
 
@@ -180,24 +237,27 @@ them together and you get the system above.
 ## Component status
 
 Public components are vendored as git submodules under `components/`. Private
-components are listed for completeness (source not published).
+components are listed for completeness (source not published). The *origin*
+column is honest about authorship: HBA is a system, and part of the point is that
+self-built tools sit next to well-chosen third-party ones under one coherent set
+of controls.
 
-| Component | Layer | Visibility |
-|-----------|-------|------------|
-| [`brain-rag-server`](components/core/brain-rag-server) | Core / semantic | public (submodule) |
-| `agentmemory` | Core / episodic | integration |
-| `neuromancer` | Core / semantic | private |
-| `mem0` / `pgvector` | Core / identity | integration |
-| `hermes-lcm` | Core / working | plugin |
-| [`mcp-scalpel`](components/reach/mcp-scalpel) | Reach | public (submodule) |
-| `ab-live` | Reach | private |
-| `excalibur` | Reach | private |
-| `Mando` | Reach | private |
-| [`heucat`](components/defense/heucat) | Defense | public (submodule) |
-| [`hermes-chthonios`](components/defense/hermes-chthonios) | Defense | public (submodule) |
-| [`hermes-argus`](components/defense/hermes-argus) | Defense | public (submodule) |
-| `KubeShip` | Control | private |
-| `Harness-Cluster` | Control | private |
+| Component | Layer | Origin | Visibility |
+|-----------|-------|--------|------------|
+| [`brain-rag-server`](components/core/brain-rag-server) | Core / semantic | self-built | public (submodule) |
+| `agentmemory` | Core / episodic | third-party, integrated | integration |
+| `neuromancer` | Core / semantic | self-built | private |
+| `mem0` / `pgvector` | Core / identity | third-party, integrated | integration |
+| `hermes-lcm` | Core / working | Hermes plugin | plugin |
+| [`mcp-scalpel`](components/reach/mcp-scalpel) | Reach | self-built | public (submodule) |
+| `ab-live` | Reach | self-built | private |
+| `excalibur` | Reach | self-built | private |
+| `Mando` | Reach | third-party, operated | private |
+| [`heucat`](components/defense/heucat) | Defense | self-built | public (submodule) |
+| [`hermes-chthonios`](components/defense/hermes-chthonios) | Defense | self-built | public (submodule) |
+| [`hermes-argus`](components/defense/hermes-argus) | Defense | self-built | public (submodule) |
+| `KubeShip` | Control | self-built | private |
+| `Harness-Cluster` | Control | self-built | private |
 
 ---
 
