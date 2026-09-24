@@ -1,0 +1,15 @@
+[submodule "components/core/brain-rag-server"]
+	path = components/core/brain-rag-server
+	url = https://github.com/iacker/brain-rag-server.git
+[submodule "components/defense/heucat"]
+	path = components/defense/heucat
+	url = https://github.com/iacker/heucat.git
+[submodule "components/defense/hermes-chthonios"]
+	path = components/defense/hermes-chthonios
+	url = https://github.com/iacker/hermes-chthonios.git
+[submodule "components/defense/hermes-argus"]
+	path = components/defense/hermes-argus
+	url = https://github.com/iacker/hermes-argus.git
+[submodule "components/reach/mcp-scalpel"]
+	path = components/reach/mcp-scalpel
+	url = https://github.com/iacker/mcp-scalpel.git
