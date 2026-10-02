@@ -184,39 +184,60 @@ is the only figure in the whole literature review that was **reproduced by an
 independent third party**: +16% retrieval effectiveness with a 33% smaller index
 and 23% faster queries (Doc2Query--, ECIR 2023, arXiv:2301.03266).
 
-## Deduplicating a memory made recall worse
+## A timeout disguised as a regression
 
-The temporal graph carried 24% redundancy at Jaccard 0.65 and 9% at 0.85, with
-identical facts stored several times. Removing them looks obviously right. It
-was measured before and after, on the same 12-question bench:
+Worth writing down because it was published wrong for twenty minutes.
 
-| Metric | Before dedup | After dedup | Delta |
-|---|---|---|---|
-| MRR | 0.125 | **0.042** | -0.083 |
-| Hit@1 | 8% | 0% | -0.080 |
-| R@10 | 17% | 8.3% | -0.087 |
+The temporal graph carried 24% redundancy at Jaccard 0.65 and 9% at 0.85. 49
+duplicate facts were retired, redundancy dropped to 0% at the same threshold,
+and the same 12-question bench was re-run. The summary metrics looked damning:
 
-49 duplicate facts were retired, residual redundancy went from 9% to 0% at the
-same threshold, and **recall got worse**. The plausible mechanism is that near
-duplicates were not noise but alternative phrasings, and each phrasing is an
-extra entry point for a query to match. Pruning them removed recall surface.
+| Metric | Before dedup | After dedup |
+|---|---|---|
+| MRR | 0.125 | 0.042 |
+| Hit@1 | 8% | 0% |
+| R@10 | 17% | 8.3% |
 
-This is the same mechanism that makes write-time query expansion work, just run
-in reverse: expansion succeeds by *adding* phrasings to the index, so removing
-phrasings should be expected to cost recall. Deduplication optimises storage and
-coherence, not retrieval, and those are different objectives.
+The first reading was that deduplication had removed recall surface, because
+near duplicates are alternative phrasings and each phrasing is an entry point.
+That story is plausible, it is consistent with why write-time expansion works,
+and it was wrong.
 
-**Honest bound on this result.** Twelve questions, and the difference is two
-hits becoming one. A single-question delta is not statistically solid. The
-signal is weak and points the wrong way, which is enough to stop treating
-deduplication as free hygiene, and not enough to call it proven harm. The
-operation was done as a reversible state change rather than a delete, precisely
-so this could be undone.
+Per-question ranks tell the real story:
 
-**Operational consequence.** Prefer invalidating over deleting, keep an export
-before any bulk change, and measure recall before and after. A memory store is
-not a database: a row that looks redundant to a human can be the only phrasing
-that a future query will match.
+```
+before : [0,0,1,0,0,0,0,0,0,0,2,0]
+after  : [0,0,0,0,0,0,0,0,0,0,2,0]
+              ^ the only difference
+```
+
+That single question is the one that **timed out at 60 s** in the second run.
+It was found at rank 1 before, and in the second run the server never answered.
+Deduplication changed nothing measurable. Recall is identical, one hit out of
+twelve in both runs, and the entire apparent regression is one expired request.
+
+**Lessons, in order of value.**
+
+1. **Never read a memory benchmark from aggregate metrics alone.** MRR, Hit@1
+   and R@10 all moved in the same direction and all three were artefacts. Print
+   per-question ranks and diff them; a single changed position invalidates a
+   story built on three metrics.
+2. **Count errors as a metric, not as noise.** A harness that silently scores a
+   timeout as "not found" converts an infrastructure problem into a fake quality
+   regression. Report timeouts and transport errors separately from misses.
+3. **Size the timeout from the measured latency distribution.** Observed
+   latencies ran 26 to 58 s against a 60 s timeout, so the bench was operating
+   inside its own error margin. Set the timeout to several times the p99, not
+   just above the median.
+4. **A plausible mechanism is not evidence.** The "redundancy is recall surface"
+   explanation was coherent enough to be convincing and survived review precisely
+   because it sounded right. Check the raw per-item data before accepting any
+   mechanism, especially a satisfying one.
+
+What does hold, independently of this episode: deduplication was performed as a
+reversible state change rather than a delete, with a full export taken first.
+That is the right default for a memory store, because a row that looks redundant
+to a human can be the only phrasing a future query will match.
 
 ## Two unsolved defects
 
