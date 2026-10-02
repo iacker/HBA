@@ -37,12 +37,19 @@ different **question**. Human memory separates working memory, episodic memory,
 semantic knowledge, and skills for the same reason: one store optimised for
 everything is good at nothing. HBA maps each tier to a purpose-built component.
 
-| Tier | Question it answers | Timescale | Component | Hermes surface |
-|------|--------------------|-----------|-----------|----------------|
-| Working | "What are we doing *right now*?" | this session | `hermes-lcm` | plugin (context compaction) |
-| Episodic | "What happened in past sessions, and what did I learn?" | across sessions | `agentmemory` | MCP server |
-| Semantic | "What do I *know* about this topic/vault?" | permanent knowledge | `brain-rag-server`, `neuromancer` | MCP servers |
-| Identity | "Who is this user and what do they always want?" | stable facts | `mem0` / `pgvector`, Hermes context notes | store + native notes |
+| Tier | Question it answers | Timescale | Measured recall cost |
+|------|--------------------|-----------|----------------------|
+| Working | "What are we doing *right now*?" | this session | free, `hermes-lcm` compaction |
+| Identity | "Who is this user and what do they always want?" | stable facts | free, but injected whole every turn |
+| Episodic | "What happened in past sessions?" | across sessions | **MRR 0.623 in 2 ms**, lexical only, no LLM |
+| Semantic | "What do I *know* about this topic/vault?" | permanent knowledge | **MRR 0.858**, hybrid + rerank, no LLM |
+| Temporal graph | "Which fact superseded which, and when?" | fact lifecycle | **MRR 0.125 in 31 s**, one LLM call per write |
+| Procedural | "How do I do this kind of task?" | permanent know-how | free, loaded on match, never benchmarked |
+
+Every number above is a local measurement against this agent's real history, not
+a vendor benchmark. The full breakdown, including six retrieval engines compared
+on one bench and the ideas that were measured and rejected, is in
+[docs/MEMORY.md](docs/MEMORY.md).
 
 ### How they work together
 
@@ -57,15 +64,24 @@ everything is good at nothing. HBA maps each tier to a purpose-built component.
                   |                  overflows the window
                   v
    +-----------------------------+   identity memory (always in context)
-   | mem0 / pgvector + notes     |   stable facts & preferences injected every
-   +--------------+--------------+   turn — no lookup needed
+   | two self-edited md files    |   stable facts injected every turn, 0 ms,
+   | 92% and 97% full, no decay  |   no lookup, and no forgetting either
+   +--------------+--------------+
                   |
        need more? | retrieve on demand
                   v
    +--------------+--------------+   +-----------------------------+
-   | agentmemory (episodic)      |   | brain-rag / neuromancer     |
-   | recall past sessions,       |   | (semantic)                  |
-   | lessons, knowledge graph    |   | hybrid RAG over the vault   |
+   | EPISODIC                    |   | SEMANTIC                    |
+   | SQLite FTS5, 9,179 messages |   | brain-rag hybrid over the   |
+   | lexical only, zero vectors  |   | vault, 927 notes            |
+   | 0.623 MRR / 2 ms            |   | 0.858 MRR                   |
+   +--------------+--------------+   +--------------+--------------+
+                  |                                 |
+                  v                                 v
+   +-----------------------------+   +-----------------------------+
+   | TEMPORAL GRAPH (on probation)   | PROCEDURAL                  |
+   | 531 facts, 28k edges        |   | 278 versioned skills        |
+   | 0.125 MRR / 31 s            |   | loaded on match             |
    +--------------+--------------+   +--------------+--------------+
                   |                                 |
                   +----------------+----------------+
@@ -74,18 +90,27 @@ everything is good at nothing. HBA maps each tier to a purpose-built component.
 ```
 
 **Read path (per turn):** the agent first uses what is already in context
-(working + identity tiers cost nothing to consult). It reaches into episodic or
-semantic memory only when the current context is insufficient — the narrowest
-bounded lookup that answers the question, not a blanket search of everything.
+(working and identity tiers cost nothing to consult). It reaches into episodic
+or semantic memory only when the current context is insufficient, taking the
+narrowest bounded lookup that answers the question rather than a blanket search.
 
-**Write path (background):** session observations are consolidated by
-`agentmemory` into its tiered store and knowledge graph; durable lessons and
-user facts are promoted upward (into identity memory) so they load for free next
-time; vault documents are indexed by `brain-rag` for semantic recall. Recent,
-high-value context is what gets promoted; noise is left to age out.
+**Write path (background):** messages land in the episodic store as they happen,
+vault notes are indexed for semantic recall, durable lessons are promoted into
+identity memory so they load for free next time, and reusable procedures are
+written as versioned skills. Only the temporal graph calls an LLM to write.
 
-The net effect: the agent behaves as if it has one memory, but each question is
-served by the store that can answer it cheapest and most accurately.
+**What measuring changed.** Three popular additions were tested and dropped on
+evidence: a vector store on episodic memory (dense ceiling 0.111, because a
+technical conversation history is semantically homogeneous and its real
+discriminators are exact identifiers), a knowledge graph for ranking (+0.004 MRR
+against +0.22 for a reranker), and pgvector as a replacement store (0.465
+against 0.858). A lexical oracle built from answer keywords finds the target at
+rank 1 in 37 out of 37 cases, which proves storage was never the bottleneck:
+every failure is a query or a ranking failure.
+
+The net effect: the agent behaves as if it has one memory, each question is
+served by the store that answers it cheapest, and no layer survives on
+reputation alone.
 
 ---
 
