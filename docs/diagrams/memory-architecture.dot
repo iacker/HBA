@@ -1,0 +1,55 @@
+digraph memory {
+  bgcolor="#15171a";
+  fontname="Helvetica";
+  fontcolor="#e6e8ea";
+  node [fontname="Helvetica", fontcolor="#e6e8ea", color="#333a41",
+        style="filled,rounded", shape=box, penwidth=1.4, margin="0.18,0.11"];
+  edge [fontname="Helvetica", fontcolor="#9aa3ab", color="#333a41",
+        penwidth=1.3, arrowsize=0.75, fontsize=9];
+  rankdir=TB; nodesep=0.34; ranksep=0.52;  compound=true;  labelloc="t"; fontsize=15;  label=<<font point-size="15"><b>Agent memory: five stores, one felt memory</b></font><br/><font point-size="10" color="#9aa3ab">every number is a local measurement, not a vendor benchmark · 2 Oct 2026</font><br/> >;  turn [fillcolor="#1e2125", color="#6aa9d9", shape=box, label=<<font point-size="12"><b>one conversation turn</b></font>>];
+  subgraph cluster_w {
+    label=<<font point-size="11" color="#9aa3ab"><b>WRITE PATH</b></font>>; color="#333a41"; style=dashed; fontname="Helvetica";
+  w1 [fillcolor="#1e2125", color="#5a636b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>self-edit</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">agent rewrites its own</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">identity files</font></td></tr></table>>];
+  w2 [fillcolor="#1e2125", color="#5a636b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>curate</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">human-reviewed note</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">into the vault</font></td></tr></table>>];
+  w3 [fillcolor="#1e2125", color="#5a636b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>append</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">timestamped message,</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">verbatim, no LLM</font></td></tr></table>>];
+  w4 [fillcolor="#32280f", color="#d9a21b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>extract</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">one LLM call per write</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">gpt-oss-120b</font></td></tr></table>>];
+  w5 [fillcolor="#1e2125", color="#5a636b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>author</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">procedure written</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">by hand, versioned</font></td></tr></table>>];
+  }
+  subgraph cluster_s {
+    label=<<font point-size="11" color="#9aa3ab"><b>FIVE STORES</b></font>>; color="#333a41"; style=dashed; fontname="Helvetica";
+  s1 [fillcolor="#32280f", color="#d9a21b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>1 · identity</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">two markdown files</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">92% and 97% full</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">no forgetting mechanism</font></td></tr></table>>];
+  s2 [fillcolor="#17301f", color="#3fa66a", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>2 · curated knowledge</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">hybrid RAG over a vault</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">927 notes, 9 328 chunks</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">BM25 + dense + rerank</font></td></tr></table>>];
+  s3 [fillcolor="#17301f", color="#3fa66a", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>3 · episodic</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">SQLite FTS5</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">9 179 messages</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">zero vectors, zero LLM</font></td></tr></table>>];
+  s4 [fillcolor="#301715", color="#c2453f", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>4 · temporal graph</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">fact graph + Postgres</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">531 facts, 28 213 edges</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">45 edges per fact</font></td></tr></table>>];
+  s5 [fillcolor="#1e2125", color="#5a636b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>5 · procedural</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">278 versioned skills</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">loaded on match</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">never benchmarked</font></td></tr></table>>];
+  }
+  subgraph cluster_r {
+    label=<<font point-size="11" color="#9aa3ab"><b>READ PATH, WITH MEASURED COST</b></font>>; color="#333a41"; style=dashed; fontname="Helvetica";
+  r1 [fillcolor="#32280f", color="#d9a21b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>injected every turn</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">not selective,</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">never decays</font></td></tr><tr><td align="left"><font point-size="10" color="#d9a21b"><b>0 ms</b></font></td></tr></table>>];
+  r2 [fillcolor="#17301f", color="#3fa66a", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>hybrid + rerank</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">heterogeneous corpus,</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">dense earns its place</font></td></tr><tr><td align="left"><font point-size="10" color="#3fa66a"><b>MRR 0.858</b></font></td></tr></table>>];
+  r3 [fillcolor="#17301f", color="#3fa66a", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>lexical only</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">nothing tested beat it</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">on this corpus</font></td></tr><tr><td align="left"><font point-size="10" color="#3fa66a"><b>MRR 0.623 · 2 ms</b></font></td></tr></table>>];
+  r4 [fillcolor="#301715", color="#c2453f", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>graph + rerank</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">finds no question the</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">others miss</font></td></tr><tr><td align="left"><font point-size="10" color="#c2453f"><b>MRR 0.125 · 31 s</b></font></td></tr></table>>];
+  r5 [fillcolor="#1e2125", color="#5a636b", label=<<table border="0" cellborder="0" cellspacing="1"><tr><td align="left"><font point-size="11"><b>by name or keyword</b></font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">no public benchmark</font></td></tr><tr><td align="left"><font point-size="9" color="#9aa3ab">covers this layer</font></td></tr><tr><td align="left"><font point-size="10" color="#5a636b"><b>unmeasured</b></font></td></tr></table>>];
+  }
+  ctx [fillcolor="#1e2125", color="#6aa9d9", label=<<font point-size="12"><b>context of the next turn</b></font>>];
+  turn -> w1 [color="#333a41"];
+  w1 -> s1;
+  s1 -> r1;
+  r1 -> ctx [color="#333a41"];
+  turn -> w2 [color="#333a41"];
+  w2 -> s2;
+  s2 -> r2;
+  r2 -> ctx [color="#333a41"];
+  turn -> w3 [color="#333a41"];
+  w3 -> s3;
+  s3 -> r3;
+  r3 -> ctx [color="#333a41"];
+  turn -> w4 [color="#333a41"];
+  w4 -> s4;
+  s4 -> r4;
+  r4 -> ctx [color="#333a41"];
+  turn -> w5 [color="#333a41"];
+  w5 -> s5;
+  s5 -> r5;
+  r5 -> ctx [color="#333a41"];
+}

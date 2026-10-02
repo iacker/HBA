@@ -7,6 +7,8 @@ Every number here comes from a local measurement against the agent's real
 conversation history and its real note vault. None of it is estimated, and none
 of it is a vendor benchmark. Measured 2 October 2026.
 
+![memory architecture](diagrams/memory-architecture.png)
+
 ## Five layers, not four
 
 The agent does not have "a memory". It has five stores with different physics,
@@ -89,6 +91,8 @@ storage at all. It also means that adding another memory store cannot help, and
 that is exactly the mistake most memory stacks make.
 
 ## Six retrieval engines on one bench
+
+![retrieval bench](diagrams/memory-bench.png)
 
 ```mermaid
 flowchart LR
