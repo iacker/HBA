@@ -188,6 +188,64 @@ is the only figure in the whole literature review that was **reproduced by an
 independent third party**: +16% retrieval effectiveness with a 33% smaller index
 and 23% faster queries (Doc2Query--, ECIR 2023, arXiv:2301.03266).
 
+### Measured: it widens coverage and does not move MRR
+
+I ran it on a rebuilt 30-question bench. Every message in the 24 sessions that
+hold the answers got 3 to 5 generated questions appended to the same FTS5
+column, the way doc2query does it, from an open-weight 120B model. All variants
+search the same candidate pool, with corpus-wide BM25 statistics and the exact
+tokenizer of the production index. Without expansion the harness reproduces the
+production score exactly, 0.619, which is the check that the comparison is fair.
+
+| Variant | MRR | Hit@1 | R@5 | R@10 | Found |
+|---|---|---|---|---|---|
+| content only (production) | **0.619** | **57%** | 70% | 73% | 22/30 |
+| content + generated questions, one column | 0.615 | 50% | **77%** | **83%** | **25/30** |
+| generated questions only, separate index | 0.514 | 47% | 57% | 60% | 18/30 |
+| RRF fusion of the two indexes | 0.527 | 43% | 67% | 73% | 22/30 |
+
+Ten questions out of thirty change rank. Three go from missed to found, one
+climbs from 7 to 2, six drop by one to five places. The generated questions are
+generic enough to lift neighbouring messages above the right one, so coverage
+goes up and the first rank gets diluted. MRR does not move.
+
+The +16% was measured on MS MARCO, heterogeneous English text, with a filter
+that drops generated questions a relevance model scores as unrelated to their
+document. My
+corpus is homogeneous French technical history and I did not filter. Both
+differences are plausible explanations, and neither is proven. Three extra
+answers out of thirty is also too small to separate from noise, so the result
+is "not shown", not "refuted". The next run filters the generated questions the way Doc2Query-- does
+and doubles the bench before anything ships.
+
+A methodology trap worth naming: expansions only existed for the sessions that
+contain the answers. Comparing that against a baseline over the whole corpus
+mixes two effects, a smaller candidate pool and added vocabulary, and the first
+one alone flatters the expanded variant. Restrict every engine to the same pool
+before comparing.
+
+## Losing the episodic index, and getting it back
+
+The first two 4 KB pages of the episodic SQLite file were zeroed one morning,
+the second time in two weeks, both times with the machine deep in swap. The
+plugin refused to load all day and nothing said so, because each layer runs on
+its own and none checks the others.
+
+Three things came out of it.
+
+1. **The index is not the backup.** The agent runtime keeps every raw message in
+   its own session database. Rebuilding from the last snapshot recovered 8,820
+   messages; replaying the session archive through the plugin's own write path
+   added 8,581 more, deduplicated on (session, role, original timestamp). A
+   second run imports zero, so the replay is safe to repeat.
+2. **Check the backup before restoring it.** The snapshot was itself damaged.
+   `PRAGMA integrity_check` first, `.recover` into a fresh file, then rebuild
+   the FTS5 index.
+3. **A daily health check across all five layers.** It verifies the SQLite
+   header and runs a quick check, measures a real recall on the graph store,
+   reads index freshness, and flags the identity layer past 90% full. It stays
+   silent when everything passes and sends one message when something does not.
+
 ## A timeout disguised as a regression
 
 Worth writing down because it was published wrong for twenty minutes.
@@ -243,12 +301,14 @@ reversible state change rather than a delete, with a full export taken first.
 That is the right default for a memory store, because a row that looks redundant
 to a human can be the only phrasing a future query will match.
 
-## Two unsolved defects
+## Two defects, one now bounded
 
-**The identity layer saturates with no forgetting.** 92% and 97% full, injected
-in full every single turn, never decaying. It is the only place where this
-memory is mathematically guaranteed to overflow, and no amount of retrieval
-tuning touches it.
+**The identity layer saturates.** It sat at 92% and 97%, injected in full every
+single turn, with no decay. There is still no automatic forgetting, but there
+is now a trigger: the daily health check flags the layer past 90%, and a
+compaction moves stale entries, and entries that duplicate the system prompt,
+into the knowledge base, keeping the
+removed text verbatim so nothing is lost.
 
 **The procedural layer is unmeasured.** 278 versioned skills, no bench, so there
 is no evidence about what loads when it should not, or never loads at all. It is
